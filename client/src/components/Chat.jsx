@@ -6,8 +6,16 @@ const Chat = props => {
     const [socket] = useState(() => io(':8000'));
     const [messages, setMessages] = useState([]);
     const [sending, setSending] = useState(false)
+///////////
+    const bottomRef = useRef();
 
-
+    const scrollToBottom = () => {
+        bottomRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+        });
+    };
+///////////
     const myMsg = {
         flex: "1",
         backgroundColor: "Navy",
@@ -27,12 +35,15 @@ const Chat = props => {
         // }))
         socket.on("new_message_from_server", msg => {
             setMessages(msg)
+            scrollToBottom()
         })
         return () => socket.disconnect(true);
+        
     }, []);
 
     const handleSubmit = e => {
         e.preventDefault()
+        // e.scrollToBottom()
         console.log(nameState)
         setSending(!sending)
         socket.emit("event_from_client", nameState) // received in server.js
@@ -47,16 +58,18 @@ const Chat = props => {
                             {message.name == nameState.name
                                 ? <div style={{ display: "flex" }}>
                                     <p style={{ flex: "2" }}></p>
-                                    <p style={myMsg} key={idx}>{message.name}:{message.msg}</p>
+                                    <p style={myMsg} key={idx}>{message.name}: {message.msg}</p>
                                 </div>
                                 : <div style={{ display: "flex" }}>
-                                    <p style={otherMsg} key={idx}>{message.name}:{message.msg}</p>
+                                    <p style={otherMsg} key={idx}>{message.name}: {message.msg}</p>
                                     <p style={{ flex: "2" }}></p>
                                 </div>}
                         </div>
                     )
                 })}
+                <div ref={bottomRef} className="list-bottom"></div>
             </div>
+            <button onClick={scrollToBottom}>scroll</button>
             <form onSubmit={handleSubmit}>
                 <input type="text" onChange={(e) => setNameState({ ...nameState, msg: e.target.value })} name="msg" />
                 <button type="submit">submit</button>
